@@ -5,7 +5,7 @@
 \title{Metric Sensitivity}
 \usage{
 sensitivity(metrics.df, first.metric, condition.colname, ref.cond = "REF",
-  deg.cond = "DEG", method = "ODE")
+  deg.cond = "DEG", method = "BDE")
 }
 \arguments{
 \item{metrics.df}{= data frame of metric values for each station}
