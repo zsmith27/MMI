@@ -37,8 +37,9 @@ barbour <- function(metrics.df, first.metric, ref.df, deg.df){
   #Round the metric quartiles to two decimal places
   barbour[, -1] <- round(barbour[, -1], 2) #the "-1" excludes column 1
   
-  barbour$DISTURBANCE <- ifelse(barbour$Ref50 > barbour$DEG50,
-                                "DECREASE", "INCREASE")
+  barbour$DISTURBANCE <- ifelse(barbour$Ref50 > barbour$DEG50, "DECREASE",
+                                ifelse(barbour$Ref50 < barbour$DEG50, "INCREASE",
+                                       "EQUAL"))
   #============================================================================
   # Scoring from Barbour et al. 1996
   # 0 = The median of both ref.df and DEG plots overlap the interquartile
