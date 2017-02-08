@@ -15,12 +15,11 @@
 #'
 sensitivity <- function(metrics.df, first.metric, condition.colname,
                         ref.cond = "REF", deg.cond = "DEG",
-                        method = "ODE"){
+                        method = "BDE"){
  
   #Create new data frames specific for Degraded and Reference sites
   deg.df <- metrics.df[metrics.df[, condition.colname] %in% deg.cond, ]
   ref.df <- metrics.df[metrics.df[, condition.colname] %in% ref.cond, ]
-  
   #============================================================================
   #Calculate the median values for the reference and degraded distributions.
   metric_col.1 <- which(names(metrics.df) %in% first.metric)
@@ -87,20 +86,27 @@ sensitivity <- function(metrics.df, first.metric, condition.colname,
     final.df <- original_de(deg.df, quant.df, first.metric)
   }
   
-  if(method == "BCE"){
-    final.df <- balanced_ce(metrics.df, quant.df, ref.cond, deg.cond,
-                    ref.df, quant.ref)
+  if(method == "BDE"){
+    final.df <- balanced_ce(metrics.df, first.metric, quant.df,
+                            condition.colname,
+                            ref.cond, deg.cond,
+                            ref.df, quant.ref)
   }
   
-  if(method == "CMA"){
-    final.df <- cma(metrics.df, quant.df, ref.cond, deg.cond,
-                    ref.df, quant.ref)
+  if(method == "ALL"){
+    barb.df <- barbour(metrics.df, first.metric, ref.df, deg.df)
+    names(barb.df)[names(barb.df) %in% "SENSITIVITY"] <- "BARBOUR_SENSITIVITY"
+    de.df <- original_de(deg.df, quant.df, first.metric)
+    names(de.df)[names(de.df) %in% "SENSITIVITY"] <- "DE_SENSITIVITY"
+    bde.df <- balanced_ce(metrics.df, first.metric, quant.df,
+                            condition.colname,
+                            ref.cond, deg.cond,
+                            ref.df, quant.ref)
+    names(bde.df)[names(bde.df) %in% "SENSITIVITY"] <- "BDE_SENSITIVITY"
+    
+    final.df <- plyr::join_all(list(barb.df, de.df, bde.df), c("METRICS", "DISTURBANCE"))
   }
   
-  if(method == "SSE"){
-    final.df <- sse(metrics.df, quant.df, ref.cond, deg.cond,
-                    ref.df, quant.ref)
-  }
   
   return(final.df)
 }
