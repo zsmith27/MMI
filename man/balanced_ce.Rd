@@ -5,7 +5,7 @@
 \title{Balanced Classification Efficiency}
 \usage{
 balanced_ce(metrics.df, first.metric, quant.df, condition.colname, ref.cond,
-  deg.cond, ref.df, quant.ref)
+  deg.cond, ref.df, deg.df, quant.ref)
 }
 \arguments{
 \item{metrics.df}{= data frame of metric values for each station with site
