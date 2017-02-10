@@ -9,4 +9,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 Imports: tidyr,
-    plyr
+    plyr,
+    ggplot2,
+    dplyr,
+    gridExtra
