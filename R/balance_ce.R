@@ -15,7 +15,7 @@
 #'
 
 balanced_ce <- function(metrics.df, first.metric, quant.df, condition.colname,
-                        ref.cond, deg.cond, ref.df, quant.ref){
+                        ref.cond, deg.cond, ref.df, deg.df, quant.ref){
   #Transform the metrics data frame from a wide format to a long data format.
   metric_col.1 <- which(names(metrics.df) %in% first.metric)
   melted <- tidyr::gather_(metrics.df, "METRICS", "VALUES",
@@ -180,14 +180,20 @@ balanced_ce <- function(metrics.df, first.metric, quant.df, condition.colname,
   #============================================================================
   #Use the ref.df data frame created in the beginning of the function
   # to report the reference median value.
-  med.df <- data.frame(sapply(ref.df[, 7:ncol(ref.df)], quantile, 0.50))
-  #Remove .50% from row names
-  med.df$METRICS <- gsub(".50%", "", row.names(med.df))
-  colnames(med.df) <- c("MEDIAN", "METRICS") #Rename the columns
+  ref_quant.df <- data.frame(t(sapply(ref.df[, 7:ncol(ref.df)], quantile, c(0, 0.05, 0.50, 0.95, 1))))
+  names(ref_quant.df) <- c("REF_MIN", "REF_05", "REF_MEDIAN", "REF_95", "REF_MAX")
+  ref_quant.df$METRICS <- row.names(ref_quant.df)
+  #============================================================================
+  #Use the ref.df data frame created in the beginning of the function
+  # to report the reference median value.
+  deg_quant.df <- data.frame(t(sapply(deg.df[, 7:ncol(deg.df)], quantile, c(0, 0.05, 0.50, 0.95, 1))))
+  names(deg_quant.df) <- c("DEG_MIN", "DEG_05", "DEG_MEDIAN", "DEG_95", "DEG_MAX")
+  deg_quant.df$METRICS <- row.names(deg_quant.df)
   #Join the reference median values for each metric to the bound
   # data frame with the SENSITIVITYs and percentile thresholds
   # for each metric. af = almost final
-  af.df <- merge(bound.df, med.df, by = "METRICS")
+  #af.df <- merge(bound.df, med.df, by = "METRICS")
+  af.df <- plyr::join_all(list(bound.df, ref_quant.df, deg_quant.df), by = "METRICS")
   af.df$PERCENTILE <- paste0(af.df$PERCENTILE, "%")
   #============================================================================
   #Use the quant.ref data frame created in the beginning of the function
@@ -197,21 +203,22 @@ balanced_ce <- function(metrics.df, first.metric, quant.df, condition.colname,
   quant.ref$PERCENTILE <- row.names(quant.ref)
   #============================================================================
   #Transform the data frame from a wide to long format.
-  melted.pct <- tidyr::gather(quant.ref, METRICS, MID_POINT, -PERCENTILE)
-  names(melted.pct) <- c("PERCENTILE", "METRICS", "MID_POINT")#change column names
+  melted.pct <- tidyr::gather(quant.ref, METRICS, BSP, -PERCENTILE)
+  names(melted.pct) <- c("PERCENTILE", "METRICS", "BSP")#change column names
   #Merge the threshold values with the almost final data frame (af.df).
   final.df <- merge(af.df, melted.pct, by = c("METRICS", "PERCENTILE"), all.x = TRUE)
   #Round the values to the hundreths place.
-  final.df[, c("MID_POINT", "BAL_SENSITIVITY", "SENSITIVITY", "PCT_REF", "PCT_DEG",
-               "MEDIAN")] <- round(final.df[, c("MID_POINT", "BAL_SENSITIVITY", "SENSITIVITY", "PCT_REF",
-                                                "PCT_DEG", "MEDIAN")], digits = 2)
-  final.df <- final.df[, c("METRICS", "DISTURBANCE", "SENSITIVITY", "PERCENTILE",
-                           "PCT_REF", "PCT_DEG", "MEDIAN", "MID_POINT")]
+  round.list <- vapply(final.df, is.numeric, FUN.VALUE = logical(1))
+  final.df[, round.list] <- round(final.df[, round.list], digits = 2)
+  final.df <- final.df[, !names(final.df) %in% "BAL_SENSITIVITY"]
   #============================================================================
-  final.df$BOUND <- ifelse(final.df$DISTURBANCE %in% "DECREASE",
-                           final.df$MID_POINT - abs(final.df$MEDIAN - final.df$MID_POINT),
+  final.df$BOUND <- ifelse(final.df$DISTURBANCE %in% c("DECREASE", "EQUAL"),
+                           final.df$BSP - abs(final.df$REF_MEDIAN - final.df$BSP),
                            ifelse(final.df$DISTURBANCE %in% "INCREASE",
-                                  final.df$MID_POINT + abs(final.df$MEDIAN - final.df$MID_POINT), "ERROR"))
+                                  final.df$BSP + abs(final.df$REF_MEDIAN - final.df$BSP),
+                                  "ERROR"))
   #============================================================================
+  reorder.cols <- c("METRICS", "SENSITIVITY", names(final.df)[!names(final.df) %in% c("METRICS", "SENSITIVITY")])
+  final.df <- final.df[, reorder.cols]
   return(final.df)
 }

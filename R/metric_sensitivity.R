@@ -78,33 +78,30 @@ sensitivity <- function(metrics.df, first.metric, condition.colname,
   }
   
   #============================================================================
-  if(method %in% "BARBOUR"){
-    final.df <- barbour(metrics.df, first.metric, ref.df, deg.df)
-  }
-  
-  if(method == "DE"){
-    final.df <- original_de(deg.df, quant.df, first.metric)
-  }
-  
-  if(method == "BDE"){
-    final.df <- balanced_ce(metrics.df, first.metric, quant.df,
-                            condition.colname,
-                            ref.cond, deg.cond,
-                            ref.df, quant.ref)
-  }
-  
-  if(method == "ALL"){
+  if(method %in% c("BARBOUR", "ALL")){
     barb.df <- barbour(metrics.df, first.metric, ref.df, deg.df)
-    names(barb.df)[names(barb.df) %in% "SENSITIVITY"] <- "BARBOUR_SENSITIVITY"
+  }
+  
+  if(method %in% c("DE", "ALL")){
     de.df <- original_de(deg.df, quant.df, first.metric)
-    names(de.df)[names(de.df) %in% "SENSITIVITY"] <- "DE_SENSITIVITY"
+  }
+  
+  if(method %in% c("BDE", "ALL")){
     bde.df <- balanced_ce(metrics.df, first.metric, quant.df,
                             condition.colname,
                             ref.cond, deg.cond,
-                            ref.df, quant.ref)
+                            ref.df, deg.df, quant.ref)
+  }
+  
+  if(method %in% "ALL"){
+    names(barb.df)[names(barb.df) %in% "SENSITIVITY"] <- "BARBOUR_SENSITIVITY"
+    names(de.df)[names(de.df) %in% "SENSITIVITY"] <- "DE_SENSITIVITY"
     names(bde.df)[names(bde.df) %in% "SENSITIVITY"] <- "BDE_SENSITIVITY"
-    
     final.df <- plyr::join_all(list(barb.df, de.df, bde.df), c("METRICS", "DISTURBANCE"))
+  } else {
+    if(exists("barb.df")) final.df <- barb.df
+    if(exists("de.df")) final.df <- de.df
+    if(exists("bde.df")) final.df <- bde.df
   }
   
   
