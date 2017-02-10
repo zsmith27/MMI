@@ -180,13 +180,13 @@ balanced_ce <- function(metrics.df, first.metric, quant.df, condition.colname,
   #============================================================================
   #Use the ref.df data frame created in the beginning of the function
   # to report the reference median value.
-  ref_quant.df <- data.frame(t(sapply(ref.df[, 7:ncol(ref.df)], quantile, c(0, 0.05, 0.50, 0.95, 1))))
+  ref_quant.df <- data.frame(t(sapply(ref.df[, metric_col.1:ncol(ref.df)], quantile, c(0, 0.05, 0.50, 0.95, 1))))
   names(ref_quant.df) <- c("REF_MIN", "REF_05", "REF_MEDIAN", "REF_95", "REF_MAX")
   ref_quant.df$METRICS <- row.names(ref_quant.df)
   #============================================================================
   #Use the ref.df data frame created in the beginning of the function
   # to report the reference median value.
-  deg_quant.df <- data.frame(t(sapply(deg.df[, 7:ncol(deg.df)], quantile, c(0, 0.05, 0.50, 0.95, 1))))
+  deg_quant.df <- data.frame(t(sapply(deg.df[, metric_col.1:ncol(deg.df)], quantile, c(0, 0.05, 0.50, 0.95, 1))))
   names(deg_quant.df) <- c("DEG_MIN", "DEG_05", "DEG_MEDIAN", "DEG_95", "DEG_MAX")
   deg_quant.df$METRICS <- row.names(deg_quant.df)
   #Join the reference median values for each metric to the bound
