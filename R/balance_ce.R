@@ -18,8 +18,13 @@ balanced_ce <- function(metrics.df, first.metric, quant.df, condition.colname,
                         ref.cond, deg.cond, ref.df, deg.df, quant.ref){
   #Transform the metrics data frame from a wide format to a long data format.
   metric_col.1 <- which(names(metrics.df) %in% first.metric)
-  melted <- tidyr::gather_(metrics.df, "METRICS", "VALUES",
-                           noquote(names(metrics.df[, metric_col.1:ncol(metrics.df)])))
+  if(is.null(names(metrics.df[, metric_col.1:ncol(metrics.df)]))){
+    melted <- tidyr::gather_(metrics.df, "METRICS", "VALUES",
+                             noquote(names(metrics.df)[metric_col.1]))
+  } else {
+    melted <- tidyr::gather_(metrics.df, "METRICS", "VALUES",
+                             noquote(names(metrics.df[, metric_col.1:ncol(metrics.df)])))
+  }
   #============================================================================
   #Merge the new long format metrics data frame with the quantile (percentile) values.
   long.df <- merge(melted, quant.df, by = "METRICS")
@@ -180,15 +185,29 @@ balanced_ce <- function(metrics.df, first.metric, quant.df, condition.colname,
   #============================================================================
   #Use the ref.df data frame created in the beginning of the function
   # to report the reference median value.
-  ref_quant.df <- data.frame(t(sapply(ref.df[, metric_col.1:ncol(ref.df)], quantile, c(0, 0.05, 0.50, 0.95, 1))))
-  names(ref_quant.df) <- c("REF_MIN", "REF_05", "REF_MEDIAN", "REF_95", "REF_MAX")
-  ref_quant.df$METRICS <- row.names(ref_quant.df)
+  if(is.null(names(metrics.df[, metric_col.1:ncol(metrics.df)]))){
+    ref_quant.df <- data.frame(t(quantile(ref.df[, metric_col.1], c(0, 0.05, 0.50, 0.95, 1))))
+    ref_quant.df$METRICS <- names(ref.df)[metric_col.1]
+  } else {
+    ref_quant.df <- data.frame(t(sapply(ref.df[, metric_col.1:ncol(ref.df)], quantile, c(0, 0.05, 0.50, 0.95, 1))))
+    ref_quant.df$METRICS <- row.names(ref_quant.df)
+  }
+  #ref_quant.df <- data.frame(t(sapply(ref.df[, metric_col.1:ncol(ref.df)], quantile, c(0, 0.05, 0.50, 0.95, 1))))
+  names(ref_quant.df) <- c("REF_MIN", "REF_05", "REF_MEDIAN", "REF_95", "REF_MAX", "METRICS")
+  
   #============================================================================
   #Use the ref.df data frame created in the beginning of the function
   # to report the reference median value.
-  deg_quant.df <- data.frame(t(sapply(deg.df[, metric_col.1:ncol(deg.df)], quantile, c(0, 0.05, 0.50, 0.95, 1))))
-  names(deg_quant.df) <- c("DEG_MIN", "DEG_05", "DEG_MEDIAN", "DEG_95", "DEG_MAX")
-  deg_quant.df$METRICS <- row.names(deg_quant.df)
+  if(is.null(names(metrics.df[, metric_col.1:ncol(metrics.df)]))){
+    deg_quant.df <- data.frame(t(quantile(deg.df[, metric_col.1], c(0, 0.05, 0.50, 0.95, 1))))
+    deg_quant.df$METRICS <- names(deg.df)[metric_col.1]
+  } else {
+    deg_quant.df <- data.frame(t(sapply(deg.df[, metric_col.1:ncol(deg.df)], quantile, c(0, 0.05, 0.50, 0.95, 1))))
+    deg_quant.df$METRICS <- row.names(deg_quant.df)
+  }
+  #deg_quant.df <- data.frame(t(sapply(deg.df[, metric_col.1:ncol(deg.df)], quantile, c(0, 0.05, 0.50, 0.95, 1))))
+  names(deg_quant.df) <- c("DEG_MIN", "DEG_05", "DEG_MEDIAN", "DEG_95", "DEG_MAX", "METRICS")
+  
   #Join the reference median values for each metric to the bound
   # data frame with the SENSITIVITYs and percentile thresholds
   # for each metric. af = almost final

@@ -8,15 +8,29 @@
 all_gradient_5_95 <- function(metrics.df, sensitivity.df, first.metric){
   metric_col.1 <- which(names(metrics.df) %in% first.metric)
   #============================================================================
-  all.quant <- data.frame(t(sapply(metrics.df[, metric_col.1:ncol(metrics.df)], quantile,
-                                   c(0.05, 0.95))))
-  names(all.quant) <- c("ALL_5%", "ALL_95%")
-  all.quant$METRICS <- row.names(all.quant)
+  if (is.null(names(metrics.df[, metric_col.1:ncol(metrics.df)]))) {
+    all.quant <- data.frame(t(quantile(metrics.df[, metric_col.1],
+                                     c(0.05, 0.95))))
+    all.quant$METRICS <- names(metrics.df)[metric_col.1]
+  } else {
+    all.quant <- data.frame(t(sapply(metrics.df[, metric_col.1:ncol(metrics.df)], quantile,
+                                     c(0.05, 0.95))))
+    all.quant$METRICS <- row.names(all.quant)
+  }
+  
+  names(all.quant) <- c("ALL_5%", "ALL_95%", "METRICS")
+  
   sensitivity.df <- sensitivity.df[, c("METRICS", "DISTURBANCE")]
   score.info <- merge(sensitivity.df, all.quant, by = "METRICS")
   #============================================================================
+  if (is.null(names(metrics.df[, metric_col.1:ncol(metrics.df)]))) {
+    metrics.cols <- names(metrics.df)[metric_col.1]
+  } else {
+    metrics.cols <- names(metrics.df[, metric_col.1:ncol(metrics.df)])
+  }
+  
   long.df <- tidyr::gather_(metrics.df, "METRICS", "REPORTING_VALUE",
-                            noquote(names(metrics.df[, metric_col.1:ncol(metrics.df)])))
+                            noquote(metrics.cols))
   long.df <- merge(long.df, score.info, by = "METRICS")
   #============================================================================
   long.df$ALL_GRADIENT_5_95 <- ifelse(long.df$DISTURBANCE %in% c("DECREASE", "EQUAL") &
@@ -46,7 +60,11 @@ all_gradient_5_95 <- function(metrics.df, sensitivity.df, first.metric){
   final.df <- tidyr::spread(long.df, METRICS, ALL_GRADIENT_5_95)
   #============================================================================
   site_info.cols <- names(metrics.df[, 1:(metric_col.1 - 1)])
-  metrics.cols <- names(metrics.df[, metric_col.1:ncol(metrics.df)])
+  if (is.null(names(metrics.df[, metric_col.1:ncol(metrics.df)]))) {
+    metrics.cols <- names(metrics.df)[metric_col.1]
+  } else {
+    metrics.cols <- names(metrics.df[, metric_col.1:ncol(metrics.df)])
+  }
   final.df <- final.df[, c(site_info.cols, metrics.cols)]
   return(final.df)
 }
@@ -61,15 +79,26 @@ all_gradient_5_95 <- function(metrics.df, sensitivity.df, first.metric){
 all_gradient_min_max <- function(metrics.df, sensitivity.df, first.metric){
   metric_col.1 <- which(names(metrics.df) %in% first.metric)
   #============================================================================
-  all.quant <- data.frame(t(sapply(metrics.df[, metric_col.1:ncol(metrics.df)], quantile,
-                                   c(0, 1))))
-  names(all.quant) <- c("ALL_MIN", "ALL_MAX")
-  all.quant$METRICS <- row.names(all.quant)
+  if (is.null(names(metrics.df[, metric_col.1:ncol(metrics.df)]))) {
+    all.quant <- data.frame(t(quantile(metrics.df[, metric_col.1],
+                                       c(0, 1))))
+    all.quant$METRICS <- names(metrics.df)[metric_col.1]
+  } else {
+    all.quant <- data.frame(t(sapply(metrics.df[, metric_col.1:ncol(metrics.df)], quantile,
+                                     c(0, 1))))
+    all.quant$METRICS <- row.names(all.quant)
+  }
+  names(all.quant) <- c("ALL_MIN", "ALL_MAX", "METRICS")
   sensitivity.df <- sensitivity.df[, c("METRICS", "DISTURBANCE")]
   score.info <- merge(sensitivity.df, all.quant, by = "METRICS")
   #============================================================================
+  if (is.null(names(metrics.df[, metric_col.1:ncol(metrics.df)]))) {
+    metrics.cols <- names(metrics.df)[metric_col.1]
+  } else {
+    metrics.cols <- names(metrics.df[, metric_col.1:ncol(metrics.df)])
+  }
   long.df <- tidyr::gather_(metrics.df, "METRICS", "REPORTING_VALUE",
-                            noquote(names(metrics.df[, metric_col.1:ncol(metrics.df)])))
+                            noquote(metrics.cols))
   long.df <- merge(long.df, score.info, by = "METRICS")
   #============================================================================
   long.df$ALL_GRADIENT_MIN_MAX  <- ifelse(long.df$DISTURBANCE %in% c("DECREASE", "EQUAL") &
@@ -99,7 +128,11 @@ all_gradient_min_max <- function(metrics.df, sensitivity.df, first.metric){
   final.df <- tidyr::spread(long.df, METRICS, ALL_GRADIENT_MIN_MAX)
   #============================================================================
   site_info.cols <- names(metrics.df[, 1:(metric_col.1 - 1)])
-  metrics.cols <- names(metrics.df[, metric_col.1:ncol(metrics.df)])
+  if (is.null(names(metrics.df[, metric_col.1:ncol(metrics.df)]))) {
+    metrics.cols <- names(metrics.df)[metric_col.1]
+  } else {
+    metrics.cols <- names(metrics.df[, metric_col.1:ncol(metrics.df)])
+  }
   final.df <- final.df[, c(site_info.cols, metrics.cols)]
   return(final.df)
 }

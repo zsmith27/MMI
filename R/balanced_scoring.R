@@ -57,7 +57,11 @@ balanced_scoring <- function(metrics.df, sensitivity.df, first.metric, method){
   #}
   #============================================================================
   metric_col.1 <- which(names(metrics.df) %in% first.metric)
-  metrics.cols <- names(metrics.df[, metric_col.1:ncol(metrics.df)])
+  if (is.null(names(metrics.df[, metric_col.1:ncol(metrics.df)]))) {
+    metrics.cols <- names(metrics.df)[metric_col.1]
+  } else {
+    metrics.cols <- names(metrics.df[, metric_col.1:ncol(metrics.df)])
+  }
 
   long.df <- tidyr::gather_(metrics.df, "METRICS", "VALUE",
                            noquote(metrics.cols))
@@ -77,8 +81,13 @@ balanced_scoring <- function(metrics.df, sensitivity.df, first.metric, method){
   final.df <- final.df[, c(site_info.cols, metrics.cols)]
   #============================================================================
   # Round all the metrics to the second decimal place.
-  final.df[, metrics.cols] <- lapply(final.df[, metrics.cols],
-                                     function(x) round(as.numeric(x), 2))
+  if (length(metrics.cols) > 1) {
+    final.df[, metrics.cols] <- lapply(final.df[, metrics.cols],
+                                       function(x) round(as.numeric(x), 2))
+  } else {
+    final.df[, metrics.cols] <- round(as.numeric(final.df[, metrics.cols]), 2)
+  }
+  
   return(final.df)
 }
 

@@ -12,8 +12,15 @@ original_de <- function(deg.df, quant.df, first.metric){
   metric_col.1 <- which(names(deg.df) %in% first.metric)
   last.metric <- names(deg.df)[ncol(deg.df)]
   
-  deg.long <- tidyr::gather_(deg.df, "METRICS", "VALUES",
-                             noquote(names(deg.df[, metric_col.1:ncol(deg.df)])))
+  if(is.null(names(metrics.df[, metric_col.1:ncol(metrics.df)]))){
+    deg.long <- tidyr::gather_(deg.df, "METRICS", "VALUES",
+                             noquote(names(metrics.df)[metric_col.1]))
+  } else {
+    deg.long <- tidyr::gather_(deg.df, "METRICS", "VALUES",
+                             noquote(names(metrics.df[, metric_col.1:ncol(metrics.df)])))
+  }
+  #deg.long <- tidyr::gather_(deg.df, "METRICS", "VALUES",
+  #                           noquote(names(deg.df[, metric_col.1:ncol(deg.df)])))
 
   merged <- merge(deg.long, quant.df, by = "METRICS")
   #============================================================================
