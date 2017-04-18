@@ -24,7 +24,8 @@ score_metrics <- function(metrics.df, scoring.method,
     } else {
       sensitivity.df <- test.sens
     }
-    sensitivity.df <- sensitivity.df[order(sensitivity.df[, sensitivity.colname], decreasing = TRUE), ]
+    sensitivity.df <- sensitivity.df[order(sensitivity.df[, sensitivity.colname],
+                                           decreasing = TRUE), ]
     metric_col.1 <- which(names(metrics.df) %in% first.metric)
     site_id.cols <- names(metrics.df[, 1:(metric_col.1 - 1)])
     metric.cols <- unique(sensitivity.df$METRICS)
@@ -46,6 +47,10 @@ score_metrics <- function(metrics.df, scoring.method,
   #============================================================================
   if(scoring.method %in% "all_gradient_min_max") {
     final.df <- all_gradient_min_max(metrics.df, sensitivity.df, first.metric)
+  }
+  #============================================================================
+  if(scoring.method %in% "all_gradient_min_95") {
+    final.df <- all_gradient_min_95(metrics.df, sensitivity.df, first.metric)
   }
   #============================================================================
   if(scoring.method %in% "all_gradient_5_95") {
