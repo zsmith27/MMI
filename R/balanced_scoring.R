@@ -152,3 +152,4 @@ bal_score_methods <- function(merged.df, method){
   return(final.vec)
   
 }
+
